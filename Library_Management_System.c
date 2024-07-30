@@ -2,41 +2,41 @@
 #include<stdlib.h>
 #include<time.h>
 
-struct books{
-    int id;
-    char bookName[50];
-    char authorName[50];
-    char date[12];
-}b;
+struct Book {
+    int bookId;
+    char bookTitle[50];
+    char bookAuthor[50];
+    char addedDate[12];
+} book;
 
-struct student{
-    int id;
-    char sName[50];
-    char sClass[50];
-    int sRoll;
-    char bookName[50];
-    char date[12];
-}s;
+struct Student {
+    int studentId;
+    char studentName[50];
+    char studentClass[50];
+    int studentRoll;
+    char issuedBookTitle[50];
+    char issueDate[12];
+} student;
 
-FILE *fp;
+FILE *filePointer;
 
 int main(){
 
-    int ch;
+    int choice;
 
     while(1){
         system("cls");
         printf("<== Library Management System ==>\n");
-        printf("1.Add Book\n");
-        printf("2.Books List\n");
-        printf("3.Remove Book\n");
-        printf("4.Issue Book\n");
-        printf("5.Issued Book List\n");
-        printf("0.Exit\n\n");
+        printf("1. Add Book\n");
+        printf("2. List Books\n");
+        printf("3. Remove Book\n");
+        printf("4. Issue Book\n");
+        printf("5. List Issued Books\n");
+        printf("0. Exit\n\n");
         printf("Enter your choice: ");
-        scanf("%d", &ch);
+        scanf("%d", &choice);
 
-        switch(ch){
+        switch(choice){
         case 0:
             exit(0);
 
@@ -45,11 +45,11 @@ int main(){
             break;
 
         case 2:
-            booksList();
+            listBooks();
             break;
 
         case 3:
-            del();
+            removeBook();
             break;
 
         case 4:
@@ -57,12 +57,11 @@ int main(){
             break;
 
         case 5:
-            issueList();
+            listIssuedBooks();
             break;
 
         default:
             printf("Invalid Choice...\n\n");
-
         }
         printf("Press Any Key To Continue...");
         getch();
@@ -71,145 +70,138 @@ int main(){
     return 0;
 }
 
-
 void addBook(){
-    char myDate[12];
+    char currentDate[12];
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    sprintf(myDate, "%02d/%02d/%d", tm.tm_mday, tm.tm_mon+1, tm.tm_year + 1900);
-    strcpy(b.date, myDate);
+    sprintf(currentDate, "%02d/%02d/%d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+    strcpy(book.addedDate, currentDate);
 
-    fp = fopen("books.txt", "ab");
+    filePointer = fopen("books.txt", "ab");
 
     printf("Enter book id: ");
-    scanf("%d", &b.id);
+    scanf("%d", &book.bookId);
 
-    printf("Enter book name: ");
+    printf("Enter book title: ");
     fflush(stdin);
-    gets(b.bookName);
+    gets(book.bookTitle);
 
     printf("Enter author name: ");
     fflush(stdin);
-    gets(b.authorName);
+    gets(book.bookAuthor);
 
-    printf("Book Added Successfully");
+    printf("Book Added Successfully\n");
 
-    fwrite(&b, sizeof(b), 1, fp);
-    fclose(fp);
+    fwrite(&book, sizeof(book), 1, filePointer);
+    fclose(filePointer);
 }
 
-
-void booksList(){
-
+void listBooks(){
     system("cls");
     printf("<== Available Books ==>\n\n");
-    printf("%-10s %-30s %-20s %s\n\n", "Book id", "Book Name", "Author", "Date");
+    printf("%-10s %-30s %-20s %s\n\n", "Book ID", "Book Title", "Author", "Date");
 
-    fp = fopen("books.txt", "rb");
-    while(fread(&b, sizeof(b), 1, fp) == 1){
-        printf("%-10d %-30s %-20s %s\n", b.id, b.bookName, b.authorName, b.date);
+    filePointer = fopen("books.txt", "rb");
+    while(fread(&book, sizeof(book), 1, filePointer) == 1){
+        printf("%-10d %-30s %-20s %s\n", book.bookId, book.bookTitle, book.bookAuthor, book.addedDate);
     }
 
-    fclose(fp);
+    fclose(filePointer);
 }
 
-void del(){
-    int id, f=0;
+void removeBook(){
+    int bookId, found = 0;
     system("cls");
     printf("<== Remove Books ==>\n\n");
-    printf("Enter Book id to remove: ");
-    scanf("%d", &id);
+    printf("Enter Book ID to remove: ");
+    scanf("%d", &bookId);
 
-    FILE *ft;
+    FILE *tempFile;
 
-    fp = fopen("books.txt", "rb");
-    ft = fopen("temp.txt", "wb");
+    filePointer = fopen("books.txt", "rb");
+    tempFile = fopen("temp.txt", "wb");
 
-    while(fread(&b, sizeof(b), 1, fp) == 1){
-        if(id == b.id){
-            f=1;
-        }else{
-            fwrite(&b, sizeof(b), 1, ft);
+    while(fread(&book, sizeof(book), 1, filePointer) == 1){
+        if(bookId == book.bookId){
+            found = 1;
+        } else {
+            fwrite(&book, sizeof(book), 1, tempFile);
         }
     }
 
-    if(f==1){
-        printf("\n\nDeleted Successfully.");
-    }else{
-        printf("\n\nRecord Not Found !");
+    if(found == 1){
+        printf("\n\nDeleted Successfully.\n");
+    } else {
+        printf("\n\nRecord Not Found!\n");
     }
 
-    fclose(fp);
-    fclose(ft);
+    fclose(filePointer);
+    fclose(tempFile);
 
     remove("books.txt");
     rename("temp.txt", "books.txt");
-
 }
 
-
 void issueBook(){
-
-    char myDate[12];
+    char currentDate[12];
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    sprintf(myDate, "%02d/%02d/%d", tm.tm_mday, tm.tm_mon+1, tm.tm_year + 1900);
-    strcpy(s.date, myDate);
+    sprintf(currentDate, "%02d/%02d/%d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+    strcpy(student.issueDate, currentDate);
 
-    int f=0;
+    int found = 0;
 
     system("cls");
     printf("<== Issue Books ==>\n\n");
 
-    printf("Enter Book id to issue: ");
-    scanf("%d", &s.id);
+    printf("Enter Book ID to issue: ");
+    scanf("%d", &student.studentId);
 
-    //Check if we have book of given id
-    fp = fopen("books.txt", "rb");
+    filePointer = fopen("books.txt", "rb");
 
-    while(fread(&b, sizeof(b), 1, fp) == 1){
-        if(b.id == s.id){
-            strcpy(s.bookName, b.bookName);
-            f=1;
+    while(fread(&book, sizeof(book), 1, filePointer) == 1){
+        if(book.bookId == student.studentId){
+            strcpy(student.issuedBookTitle, book.bookTitle);
+            found = 1;
             break;
         }
     }
 
-    if(f==0){
-        printf("No book found with this id\n");
+    if(found == 0){
+        printf("No book found with this ID\n");
         printf("Please try again...\n\n");
         return;
     }
 
-    fp = fopen("issue.txt", "ab");
+    filePointer = fopen("issue.txt", "ab");
 
     printf("Enter Student Name: ");
     fflush(stdin);
-    gets(s.sName);
+    gets(student.studentName);
 
     printf("Enter Student Class: ");
     fflush(stdin);
-    gets(s.sClass);
+    gets(student.studentClass);
 
     printf("Enter Student Roll: ");
-    scanf("%d", &s.sRoll);
+    scanf("%d", &student.studentRoll);
 
     printf("Book Issued Successfully\n\n");
 
-    fwrite(&s, sizeof(s), 1, fp);
-    fclose(fp);
+    fwrite(&student, sizeof(student), 1, filePointer);
+    fclose(filePointer);
 }
 
-void issueList(){
+void listIssuedBooks(){
     system("cls");
     printf("<== Book Issue List ==>\n\n");
 
-    printf("%-10s %-30s %-20s %-10s %-30s %s\n\n", "S.id", "Name", "Class", "Roll", "Book Name", "Date");
+    printf("%-10s %-30s %-20s %-10s %-30s %s\n\n", "Student ID", "Name", "Class", "Roll", "Book Title", "Date");
 
-    fp = fopen("issue.txt", "rb");
-    while(fread(&s, sizeof(s), 1, fp) == 1){
-        printf("%-10d %-30s %-20s %-10d %-30s %s\n", s.id, s.sName, s.sClass, s.sRoll, s.bookName, s.date);
+    filePointer = fopen("issue.txt", "rb");
+    while(fread(&student, sizeof(student), 1, filePointer) == 1){
+        printf("%-10d %-30s %-20s %-10d %-30s %s\n", student.studentId, student.studentName, student.studentClass, student.studentRoll, student.issuedBookTitle, student.issueDate);
     }
 
-    fclose(fp);
+    fclose(filePointer);
 }
